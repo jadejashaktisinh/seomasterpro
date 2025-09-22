@@ -218,4 +218,7 @@ class Seomasterpro {
 	public function get_version() {
 		return $this->version;
 	}
+	
 }
+
+
