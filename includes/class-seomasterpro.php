@@ -219,3 +219,5 @@ class Seomasterpro {
 		return $this->version;
 	}
 }
+
+
