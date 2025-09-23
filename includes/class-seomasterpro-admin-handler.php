@@ -78,7 +78,7 @@ class Admin_Handler {
 	public function ai_seo_render_admin_column( $column, $post_id ) {
 		if ( 'ai_seo' === $column ) {
 			$score       = get_post_meta( $post_id, '_ai_seo_score', true );
-			$suggestions = get_post_meta( $post_id, '_ai_seo_suggestions', true );
+			$keyword = get_post_meta( $post_id, '_ai_seo_focus_keyword', true );
 
 			if ( $score ) {
 				echo '<strong>' . intval( $score ) . '/100</strong>';
@@ -86,8 +86,8 @@ class Admin_Handler {
 				echo '<em>Not analyzed</em>';
 			}
 
-			if ( ! empty( $suggestions ) && is_array( $suggestions ) ) {
-				echo '<br><small>' . esc_html( $suggestions[0] ) . '</small>'; // Show first suggestion
+			if ( ! empty( $keyword ) ) {
+				echo '<br><big> <strong>Keyword: </strong>' . esc_html( $keyword ) . '</big>'; 
 			}
 		}
 	}

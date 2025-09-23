@@ -42,7 +42,6 @@ class AI_SEO_Analyzer {
 		$post = $backup_post;
 		wp_reset_postdata();
 
-		error_log( print_r( $head_content, true ) );
 
 		$prompt = "
             Analyze the following WordPress post content for SEO compliance based on the listed rules:
@@ -108,38 +107,11 @@ class AI_SEO_Analyzer {
 		if ( is_wp_error( $response ) ) {
 			return false;
 		}
-
-		$data       = json_decode( wp_remote_retrieve_body( $response ), true );
-		$ai_content = $data['choices'][0]['message']['content'] ?? '';
-		error_log( print_r( $ai_content, true ) );
-		$ai_content = preg_replace( '/^```[a-zA-Z0-9]*\s*/', '', $ai_content );
-		$ai_content = preg_replace( '/```$/', '', $ai_content );
-		$ai_content = preg_replace( '/[\x00-\x1F\x7F]/u', '', $ai_content );
-		$ai_content = trim( $ai_content );
-		$ai_content = rtrim( $ai_content, ';' );
-		$ai_result  = json_decode( $ai_content, true );
-		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			$ai_content_fixed = preg_replace_callback(
-				'/"([^"]*)"/',
-				function ( $matches ) {
-					return '"' . addslashes( $matches[1] ) . '"';
-				},
-				$ai_content
-			);
-
-			$ai_result = json_decode( $ai_content_fixed, true );
-		}
-
-		if ( json_last_error() !== JSON_ERROR_NONE ) {
-			error_log( 'JSON decode error: ' . json_last_error_msg() );
-			error_log( 'AI content: ' . $ai_content );
+		$ai_result = $this->parse_ai_json($response);
+		if(!$ai_result){
 			return false;
 		}
-
 		$technical_issue = apply_filters( 'do_technical_scan', array(), $post_id );
-
-		error_log( $ai_result['score'] );
-		error_log( $ai_result['score'] - $technical_issue[1] );
 		update_post_meta( $post_id, '_ai_seo_score', $ai_result['score'] ? $ai_result['score'] - $technical_issue[1] : 0 );
 		update_post_meta( $post_id, '_ai_seo_suggestions', $ai_result['suggestions'] ?? array() );
 		if ( $auto_generate_meta ) {
@@ -149,8 +121,7 @@ class AI_SEO_Analyzer {
 
 		}
 		update_post_meta( $post_id, '_ai_seo_improved_meta', $ai_result['improved_meta'] ?? array() );
-		update_post_meta( $post_id, '_technical_issues', $technical_issue[0] ?? array() );
-		error_log( print_r( $ai_result, true ) );
+		update_post_meta( $post_id, '_technical_issues', $technical_issue[0] ?? '' );
 		return $ai_result;
 	}
 
@@ -174,11 +145,51 @@ class AI_SEO_Analyzer {
 			return;
 		}
 		if ( get_post_status( $post_id ) === 'auto-draft' ) {
-			return; // important!
+			return; 
 		}
 
 		if ( ! wp_next_scheduled( 'cron_ai_analyze', array( $post_id ) ) ) {
 			wp_schedule_single_event( time() + 5, 'cron_ai_analyze', array( $post_id ) );
 		}
 	}
+
+	public function parse_ai_json( $response ) {
+    $data       = json_decode( wp_remote_retrieve_body( $response ), true );
+    $ai_content = $data['choices'][0]['message']['content'] ?? '';
+
+	error_log(print_r($ai_content,true));
+    $ai_content = preg_replace( '/^```[a-zA-Z0-9]*\s*/', '', $ai_content );
+    $ai_content = preg_replace( '/```$/', '', $ai_content );
+
+    $ai_content = preg_replace( '/[\x00-\x1F\x7F]/u', '', $ai_content );
+
+    $ai_content = str_replace( ['“','”','‘','’'], ['"','"',"'", "'"], $ai_content );
+
+    $ai_content = preg_replace( '/,(\s*[}\]])/', '$1', $ai_content );
+
+    $ai_content = trim( $ai_content );
+    $ai_content = rtrim( $ai_content, ';' );
+
+    $ai_result = json_decode( $ai_content, true );
+
+    if ( json_last_error() !== JSON_ERROR_NONE ) {
+        $ai_content_fixed = preg_replace_callback(
+            '/"([^"]*)"/',
+            function ( $matches ) {
+                return '"' . addslashes( $matches[1] ) . '"';
+            },
+            $ai_content
+        );
+
+        $ai_result = json_decode( $ai_content_fixed, true );
+    }
+
+    if ( json_last_error() !== JSON_ERROR_NONE ) {
+        error_log( 'JSON decode error: ' . json_last_error_msg() );
+        error_log( 'AI content: ' . $ai_content );
+        return false;
+    }
+
+    return $ai_result;
+}
 }

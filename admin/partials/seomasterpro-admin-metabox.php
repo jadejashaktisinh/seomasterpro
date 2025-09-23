@@ -8,7 +8,11 @@ $meta_description   = get_post_meta( $post->ID, '_ai_seo_meta_description', true
 $seo_score          = get_post_meta( $post->ID, '_ai_seo_score', true ) ?? '';
 $seo_suggestions    = get_post_meta( $post->ID, '_ai_seo_suggestions', true ) ?? '';
 $seo_improved_meta  = get_post_meta( $post->ID, '_ai_seo_improved_meta', true ) ?? '';
-$auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true ) ?: get_option( 'all_meta_generate' );
+$selected_generate_post_types = get_option('generate_post_types',array());
+
+$auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true ) ?: in_array($post->post_type,$selected_generate_post_types) ;
+
+
 ?>
 
 <label for="ai-seo-meta-title"><b>Meta Title:</b></label>

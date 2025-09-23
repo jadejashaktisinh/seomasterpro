@@ -29,6 +29,7 @@
 	 * practising this, we should strive to set a better example in our own work.
 	 */
 
+	
 	$( '#ai-seo-analyze, #ai-seo-improve' ).click(
 		function () {
 
