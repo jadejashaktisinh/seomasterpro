@@ -3,15 +3,6 @@
 class Sitemap_Generator {
 
 
-
-
-	function __construct() {
-
-		add_action( 'init', array( $this, 'register_rewrite_rules' ) );
-		add_action( 'admin_init', array( $this, 'save_sitemap_setting' ) );
-		add_action( 'template_redirect', array( $this, 'serve_sitemap' ) );
-	}
-
 	public function register_rewrite_rules() {
 		add_rewrite_rule( 'sitemap\.xml$', 'index.php?sitemap=index', 'top' );
 		add_rewrite_rule( 'sitemap-([^/]+)\.xml$', 'index.php?sitemap=$matches[1]', 'top' );

@@ -36,7 +36,6 @@ if ( ! defined( 'WPINC' ) ) {
  * Rename this for your plugin and update it as you release new versions.
  */
 define( 'SEOMASTERPRO_VERSION', '1.0.0' );
-define( 'INCLUDEPATH', plugin_dir_path( __FILE__ ) . '/includes/' );
 
 /**
  * The code that runs during plugin activation.
@@ -81,14 +80,6 @@ require plugin_dir_path( __FILE__ ) . 'includes/class-seomasterpro.php';
  * @since    1.0.0
  */
 
-require_once INCLUDEPATH . 'class-seomasterpro-metabox-handler.php';
-require_once INCLUDEPATH . 'class-seomasterpro-seo-analyze-handler.php';
-require_once INCLUDEPATH . 'class-seomasterpro-admin-handler.php';
-require_once INCLUDEPATH . 'class-seomasterpro-sitemap-generator.php';
-require_once INCLUDEPATH . 'class-seomasterpro-schema-generator.php';
-require_once INCLUDEPATH . 'class-seomasterpro-technical-scan-handler.php';
-require_once INCLUDEPATH . 'class-seomasterpro-ai-handler.php';
-require_once INCLUDEPATH . 'class-seomasterpro-chart-ajax.php';
 
 function run_seomasterpro() {
 	$plugin = new Seomasterpro();

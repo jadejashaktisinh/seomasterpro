@@ -1,17 +1,20 @@
 <?php
 
-global $post;
 wp_nonce_field( 'ai_seo_meta_box_nonce', 'ai_seo_meta_box_nonce_field' );
-$focus_keyword      = get_post_meta( $post->ID, '_ai_seo_focus_keyword', true ) ?? '';
-$meta_title         = get_post_meta( $post->ID, '_ai_seo_meta_title', true ) ?? '';
-$meta_description   = get_post_meta( $post->ID, '_ai_seo_meta_description', true ) ?? '';
-$seo_score          = get_post_meta( $post->ID, '_ai_seo_score', true ) ?? '';
-$seo_suggestions    = get_post_meta( $post->ID, '_ai_seo_suggestions', true ) ?? '';
-$seo_improved_meta  = get_post_meta( $post->ID, '_ai_seo_improved_meta', true ) ?? '';
-$selected_generate_post_types = get_option('generate_post_types',array());
+$focus_keyword                = get_post_meta( $post->ID, '_ai_seo_focus_keyword', true ) ?? '';
+$meta_title                   = get_post_meta( $post->ID, '_ai_seo_meta_title', true ) ?? '';
+$meta_description             = get_post_meta( $post->ID, '_ai_seo_meta_description', true ) ?? '';
+$seo_score                    = get_post_meta( $post->ID, '_ai_seo_score', true ) ?? '';
+$seo_suggestions              = get_post_meta( $post->ID, '_ai_seo_suggestions', true ) ?? '';
+$seo_improved_meta            = get_post_meta( $post->ID, '_ai_seo_improved_meta', true ) ?? '';
+$selected_generate_post_types = get_option( 'generate_post_types', array() );
 
-$auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true ) ?: in_array($post->post_type,$selected_generate_post_types) ;
+$meta_exists = metadata_exists( 'post', $post->ID, '_auto_generate_meta' );
 
+if ( ! $meta_exists && in_array( $post->post_type, $selected_generate_post_types )) {
+	 update_post_meta( $post->ID, '_auto_generate_meta', true );
+}
+$auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true );
 
 ?>
 
@@ -21,9 +24,10 @@ $auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true ) ?:
 <textarea id="ai-seo-meta-description" name="ai_seo_meta_description" style="width:100%; margin-bottom:5px;" rows="3"><?php echo esc_textarea( $meta_description ); ?></textarea>
 <label for="ai-seo-keyword"><b>Focus Keyword:</b></label>
 <input type="text" id="ai-seo-keyword" name="ai_seo_keyword" value="<?php echo esc_attr( $focus_keyword ); ?>" style="width:100%; margin-bottom:5px;" />
-<input type="checkbox" id="ai-seo-checkbox" name="ai-seo-checkbox" <?php echo $auto_generate_meta ? 'checked' : ''; ?> > <label>Auto generate meta feild</label>
+<input type="checkbox" id="ai-seo-checkbox" name="ai-seo-checkbox" <?php echo $auto_generate_meta ? 'checked' : ''; ?>> <label>Auto generate meta feild</label>
 <button type="button" class="button button-primary" id="ai-seo-analyze" style="width:100%; margin-bottom:5px;">Analyze SEO</button>
-<button type="button" class="button" id="ai-seo-improve" style="width:100%; margin-bottom:5px;">Improve Content</button>
+<!-- <button type="button" class="button" id="ai-seo-improve" style="width:100%; margin-bottom:5px;">Improve Content</button> -->
+<div id="react-editor-root"></div>
 <p>*last saved content will be analyzed</p>
 <div id="ai-seo-results" style="margin-top:15px; font-size:14px; font-family:Arial, sans-serif;">
 	<?php if ( $seo_score ) : ?>
@@ -47,7 +51,7 @@ $auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true ) ?:
 	<?php endif; ?>
 
 	<?php if ( $seo_suggestions ) : ?>
-	<div style="
+		<div style="
 		padding:15px;
 		border-radius:8px;
 		background:#f9fafb;
@@ -56,15 +60,15 @@ $auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true ) ?:
 		margin-top:15px;
 	">
 
-		<h3 style="
+			<h3 style="
 			margin:0 0 10px;
 			font-size:15px;
 			font-weight:600;
 			color:#111827;
 		">
-			💡 Meta Suggestions
-		</h3>
-		<ul id="seo-suggestion" style="
+				💡 Meta Suggestions
+			</h3>
+			<ul id="seo-suggestion" style="
 			margin:0;
 			padding-left:20px;
 			list-style-type:disc;
@@ -72,30 +76,30 @@ $auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true ) ?:
 			line-height:1.6;
 			font-size:14px;
 		">
-			<?php
-			$meta_array = array( 'Meta Title', 'Meta Descripation', 'Focus Keyword' );
-			$i          = 0;
-			foreach ( $seo_improved_meta as $im ) :
-				?>
-				<li style="margin-bottom:6px;">  
-					<?php echo esc_html( $meta_array[ $i ] . ':' ); ?><br>
-					<?php echo esc_html( $im ); ?>
-
-				</li>
 				<?php
-				++$i;
-endforeach;
-			?>
-		</ul>
-		<h3 style="
+				$meta_array = array( 'Meta Title', 'Meta Descripation', 'Focus Keyword' );
+				$i          = 0;
+				foreach ( $seo_improved_meta as $im ) :
+					?>
+					<li style="margin-bottom:6px;">
+						<?php echo esc_html( $meta_array[ $i ] . ':' ); ?><br>
+						<?php echo esc_html( $im ); ?>
+
+					</li>
+					<?php
+					++$i;
+				endforeach;
+				?>
+			</ul>
+			<h3 style="
 			margin:0 0 10px;
 			font-size:15px;
 			font-weight:600;
 			color:#111827;
 		">
-			💡 Suggestions
-		</h3>
-		<ul id="seo-suggestion" style="
+				💡 Suggestions
+			</h3>
+			<ul id="seo-suggestion" style="
 			margin:0;
 			padding-left:20px;
 			list-style-type:disc;
@@ -103,11 +107,11 @@ endforeach;
 			line-height:1.6;
 			font-size:14px;
 		">
-			<?php foreach ( $seo_suggestions as $s ) : ?>
-				<li style="margin-bottom:6px;"><?php echo esc_html( $s ); ?></li>
-			<?php endforeach; ?>
-		</ul>
-	</div>
-<?php endif; ?>
+				<?php foreach ( $seo_suggestions as $s ) : ?>
+					<li style="margin-bottom:6px;"><?php echo esc_html( $s ); ?></li>
+				<?php endforeach; ?>
+			</ul>
+		</div>
+	<?php endif; ?>
 
 </div>

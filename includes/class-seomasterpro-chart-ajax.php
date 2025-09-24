@@ -2,10 +2,6 @@
 
 class Chart_Ajax {
 
-	public function __construct() {
-		add_action( 'wp_ajax_seo_master_get_chart_data', array( $this, 'get_chart_data' ) );
-	}
-
 	public function get_chart_data() {
 			global $wpdb;
 

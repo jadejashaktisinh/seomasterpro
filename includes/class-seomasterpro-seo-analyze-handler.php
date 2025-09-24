@@ -4,16 +4,8 @@
 class AI_SEO_Analyzer {
 
 
-
-
-	public function __construct() {
-		add_action( 'wp_ajax_ai_seo_analyze', array( $this, 'ajax_ai_seo_analyze' ) );
-		add_action( 'save_post', array( $this, 'save_post_ai_seo_analyze' ), 11, 1 );
-		add_action( 'cron_ai_analyze', array( $this, 'analyze_post' ), 10, 1 );
-	}
-
-
 	public function analyze_post( $post_id ) {
+
 		$post = get_post( $post_id );
 		if ( ! $post ) {
 			return false;
@@ -29,7 +21,7 @@ class AI_SEO_Analyzer {
 		$keyword            = get_post_meta( $post_id, '_focus_keyword', true );
 		$meta_title         = get_post_meta( $post_id, '_yoast_wpseo_title', true );
 		$meta_description   = get_post_meta( $post_id, '_yoast_wpseo_metadesc', true );
-		$auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true ) ?: get_option( 'all_meta_generate' );
+		$auto_generate_meta = get_post_meta( $post->ID, '_auto_generate_meta', true );
 
 		global $post;
 		$backup_post  = $post;
@@ -42,45 +34,47 @@ class AI_SEO_Analyzer {
 		$post = $backup_post;
 		wp_reset_postdata();
 
+$prompt = "
+Analyze the following WordPress post content for SEO compliance and generate an improved version.
 
-		$prompt = "
-            Analyze the following WordPress post content for SEO compliance based on the listed rules:
+Post Details:
+- Title: {$title}
+- Content (HTML): {$content}
+- Focus Keyword: {$keyword}
+- Meta Title: {$meta_title}
+- Meta Description: {$meta_description}
+- Head Section (HTML): {$head_content}
 
-            Post Details:
-            - Title: {$title}
-            - Content (HTML): {$content}
-            - Focus Keyword: {$keyword}
-            - Meta Title: {$meta_title}
-            - Meta Description: {$meta_description}
-            - Head Section (HTML): {$head_content}
+SEO Rules to Apply:
+1. Focus Keyword Usage: Must appear in title, slug/URL, meta description, first paragraph, headings, and body text.
+2. Readability: Check sentence length, paragraph length, passive voice usage, transition words, readability score.
+3. Content Length: Minimum 300 words, ideally 800-1500.
+4. Meta Data: Title length (50-60 chars), description length (150-160 chars), uniqueness.
+5. Images: Ensure alt text is present, add the focus keyword to alt attributes if missing, and file size is optimal.
+6. Links: Internal links, external links, broken link detection.
+7. Headings: Single H1, proper hierarchy, keyword in H2.
+8. URL/Slug: Short, keyword-rich, avoid stop words.
+9. Content Freshness: Warn if post is older than 12 months.
+10. Technical Checks: Canonical tag, OpenGraph, Twitter cards.
+11. Duplicate Check: Warn if duplicate title/meta across posts.
+12. SEO Score System: Weighted scoring system with green/orange/red results.
 
-            SEO Rules to Apply:
-            1. Focus Keyword Usage: Must appear in title, slug/URL, meta description, first paragraph, headings, and body text.
-            2. Readability: Check sentence length, paragraph length, passive voice usage, transition words, readability score.
-            3. Content Length: Minimum 300 words, ideally 800-1500.
-            4. Meta Data: Title length (50-60 chars), description length (150-160 chars), uniqueness.
-            5. Images: Ensure alt text is present, add the focus keyword to alt attributes if missing, and file size is optimal.
-            6. Links: Internal links, external links, broken link detection.
-            7. Headings: Single H1, proper hierarchy, keyword in H2.
-            8. URL/Slug: Short, keyword-rich, avoid stop words.
-            9. Content Freshness: Warn if post is older than 12 months.
-            10. Technical Checks: Canonical tag, OpenGraph, Twitter cards.
-            11. Duplicate Check: Warn if duplicate title/meta across posts.
-            12. SEO Score System: Weighted scoring system with green/orange/red results.
+Instructions:
+- Preserve all original HTML, shortcodes, embeds, galleries, and formatting exactly as in the original content.
+- Identify all SEO issues and fix them in the `improved_content` field.
+- Ensure `improved_content` is fully WordPress editor compatible (Gutenberg/classic).
+- All quotes in HTML must be escaped as \\\".
+- All newlines in HTML must be escaped as \\n.
+- Return **ONLY a single valid JSON object** with these fields:
+  - `score` (integer 0-100)
+  - `suggestions` (array of improvement suggestions)
+  - `improved_meta` (array: [Improved Meta Title, Improved Meta Description, Focus Keyword])
+  - `title` (string: optimized title, do not include in `improved_content`)
+  - `improved_content` (string: full optimized HTML content with all SEO fixes applied, fully escaped for WordPress)
+- Do not include any extra text, explanation, or formatting outside the JSON object.
+- Make sure the JSON is valid and `improved_content` will render correctly in WordPress without breaking tags, images, galleries, or shortcodes.
+";
 
-            Instructions:
-            - Identify all SEO issues in the content.
-            - Correct all issues in the `improved_content` field based on rules list.
-            - Ensure the `improved_content` **preserves all HTML tags** and properly updates elements like headings, links, and image `alt` attributes.
-            - Return **ONLY a single valid JSON object** with the following fields:
-              - `score` (integer 0-100)
-              - `suggestions` (array of improvement suggestions)
-			  - `improved_meta` (array of imrpoved meta title meta description and focus keyword based on content in order [Improved Meta Title, Improved Meta Description, Focus Keyword])
-			  - `title` (string full optimized based on content meta title meta description **dont add title in *improved_content*)
-              - `improved_content` (string, full optimized HTML content with all SEO fixes applied)
-            - Escape all quotes, newlines, and special characters properly so the JSON is fully valid.
-            - Do **not** include any text, explanation, or formatting outside the JSON object.
-            ";
 
 		$body     = array(
 			'model'    => 'meta-llama/llama-3.3-8b-instruct:free',
@@ -109,6 +103,8 @@ class AI_SEO_Analyzer {
 		}
 		$ai_result = $this->parse_ai_json($response);
 		if(!$ai_result){
+		
+		update_post_meta($post_id,'_cron_status','error');
 			return false;
 		}
 		$technical_issue = apply_filters( 'do_technical_scan', array(), $post_id );
@@ -122,6 +118,7 @@ class AI_SEO_Analyzer {
 		}
 		update_post_meta( $post_id, '_ai_seo_improved_meta', $ai_result['improved_meta'] ?? array() );
 		update_post_meta( $post_id, '_technical_issues', $technical_issue[0] ?? '' );
+		update_post_meta($post_id,'_cron_status','finhised');
 		return $ai_result;
 	}
 
@@ -149,6 +146,7 @@ class AI_SEO_Analyzer {
 		}
 
 		if ( ! wp_next_scheduled( 'cron_ai_analyze', array( $post_id ) ) ) {
+			update_post_meta($post_id,'_cron_status','analyzing');
 			wp_schedule_single_event( time() + 5, 'cron_ai_analyze', array( $post_id ) );
 		}
 	}

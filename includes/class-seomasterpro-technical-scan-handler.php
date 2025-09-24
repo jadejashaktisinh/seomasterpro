@@ -2,15 +2,13 @@
 
 class Technical_Scan_Handler {
 
+
 	public $content = '';
-	public function __construct() {
-		add_filter( 'do_technical_scan', array( $this, 'do_technical_scan' ),10, 2 );
-	}
 
-	public function do_technical_scan( $issues ,$post_id ) {
+	public function do_technical_scan( $issues, $post_id ) {
 
-		$post = get_post($post_id);
-		$this->content = file_get_contents($post->guid);
+		$post          = get_post( $post_id );
+		$this->content = file_get_contents( $post->guid );
 
 		$missing_alt = $this->check_missing_alt( $post_id );
 		$deduct      = 0;
@@ -27,7 +25,7 @@ class Technical_Scan_Handler {
 		$broken_links = $this->check_broken_links( $post_id );
 		if ( $broken_links ) {
 			if ( count( $broken_links ) > 5 ) {
-					$deduct = 15;
+				$deduct = 15;
 			} else {
 				$deduct = count( $broken_links ) * 3;
 			}
@@ -45,10 +43,10 @@ class Technical_Scan_Handler {
 		);
 	}
 	public function check_missing_alt( $post_id ) {
-		
+
 		preg_match_all( '/<img\s+[^>]*>/i', $this->content, $matches );
 		$images = $matches[0];
-		 
+
 		$missing_alt = array();
 		foreach ( $images as $img ) {
 			if ( ! preg_match( '/alt=["\'].+["\']/', $img ) ) {
@@ -85,29 +83,22 @@ class Technical_Scan_Handler {
 		$head = $this->content;
 
 		$issues = array();
-		if ( ! preg_match( '/<meta property=["\']og:title["\'] content=["\']([^"\']+)["\']/', $head ) ) {
-			$issues[] = 'Missing OG title';
-		}
-		if ( ! preg_match( '/<meta property=["\']og:description["\'] content=["\']([^"\']+)["\']/', $head ) ) {
-			$issues[] = 'Missing OG description';
-		}
-		if ( ! preg_match( '/<meta property=["\']og:image["\'] content=["\']([^"\']+)["\']/', $head ) ) {
-			$issues[] = 'Missing OG image';
-		}
-		if ( ! preg_match( '/<meta name=["\']twitter:title["\'] content=["\']([^"\']+)["\']/', $head ) ) {
-			$issues[] = 'Missing Twitter title';
-		}
-		if ( ! preg_match( '/<meta name=["\']twitter:description["\'] content=["\']([^"\']+)["\']/', $head ) ) {
-			$issues[] = 'Missing Twitter description';
-		}
-		if ( ! preg_match( '/<meta name=["\']twitter:image["\'] content=["\']([^"\']+)["\']/', $head ) ) {
-			$issues[] = 'Missing Twitter image';
-		}
 
-		if ( ! empty( $issues ) ) {
+		$meta_checks = array(
+			'OG title'            => '/<meta\s+[^>]*(property|name)=["\']og:title["\'][^>]*content=["\']([^"\']+)["\']/i',
+			'OG description'      => '/<meta\s+[^>]*(property|name)=["\']og:description["\'][^>]*content=["\']([^"\']+)["\']/i',
+			'OG image'            => '/<meta\s+[^>]*(property|name)=["\']og:image["\'][^>]*content=["\']([^"\']+)["\']/i',
+			'Twitter title'       => '/<meta\s+[^>]*name=["\']twitter:title["\'][^>]*content=["\']([^"\']+)["\']/i',
+			'Twitter description' => '/<meta\s+[^>]*name=["\']twitter:description["\'][^>]*content=["\']([^"\']+)["\']/i',
+			'Twitter image'       => '/<meta\s+[^>]*name=["\']twitter:image["\'][^>]*content=["\']([^"\']+)["\']/i',
+		);
 
-			return implode( ',', $issues );
+		foreach ( $meta_checks as $label => $pattern ) {
+			if ( ! preg_match( $pattern, $head ) ) {
+				$issues[] = 'Missing ' . $label;
+			}
 		}
-		return '';
+		error_log(implode( ', ', $issues ));
+		return ! empty( $issues ) ? implode( ', ', $issues ) : '';
 	}
 }

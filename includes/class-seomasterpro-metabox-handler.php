@@ -3,17 +3,10 @@
 class MetaBox_Handler {
 
 
-	public function __construct() {
-		add_action( 'add_meta_boxes', array( $this, 'regiter_meta_box' ) );
-		add_action( 'save_post', array( $this, 'save_seo_meta' ), 10 );
-		add_action( 'save_post', array( $this, 'save_schema_meta' ), 10 );
-	}
-
-
 	public function regiter_meta_box() {
 
 		$post_types = get_post_types( array( 'public' => true ), 'names' );
-
+		error_log(print_r($post_types,true));
 		foreach ( $post_types as $pt ) {
 			add_meta_box(
 				'ai_seo_meta_box',
@@ -32,18 +25,33 @@ class MetaBox_Handler {
 				'side',
 				'high'
 			);
+			add_meta_box(
+				'social_meta_box',
+				'Social Card',
+				array( $this, 'show_social_meta_box' ),
+				$pt,
+			);
 		}
 	}
 
-	public function show_seo_meta_boxes() {
+	public function show_seo_meta_boxes($post) {
 		include_once dirname( plugin_dir_path( __FILE__ ) ) . '/admin/partials/seomasterpro-admin-metabox.php';
 	}
 	public function show_schema_meta_box() {
 		include_once dirname( plugin_dir_path( __FILE__ ) ) . '/admin/partials/seomasterpro-admin-schema-metabox.php';
 	}
 
+	public function save_post_meta( $post_id ) {
+		$this->save_seo_meta( $post_id );
+		$this->save_schema_meta( $post_id );
+		$this->save_social_meta( $post_id );
+	}
+	public function show_social_meta_box() {
+				include_once dirname( plugin_dir_path( __FILE__ ) ) . '/admin/partials/seomasterpro-admin-social-metabox.php';
+	}
 	public function save_seo_meta( $post_id ) {
 
+		$post = get_post( $post_id );
 		if ( ! isset( $_POST['ai_seo_meta_box_nonce_field'] ) ) {
 			return;
 		}
@@ -63,7 +71,11 @@ class MetaBox_Handler {
 		if ( isset( $_POST['ai_seo_meta_description'] ) ) {
 			update_post_meta( $post_id, '_ai_seo_meta_description', sanitize_textarea_field( $_POST['ai_seo_meta_description'] ) );
 		}
-		update_post_meta( $post_id, '_auto_generate_meta', $_POST['ai-seo-checkbox'] );
+		if ( isset( $_POST['ai-seo-checkbox'] ) ) {
+			update_post_meta( $post_id, '_auto_generate_meta', true );
+		} else {
+			update_post_meta( $post_id, '_auto_generate_meta', false );
+		}
 	}
 
 	public function save_schema_meta( $post_id ) {
@@ -125,5 +137,16 @@ class MetaBox_Handler {
 		} else {
 			delete_post_meta( $post_id, '_base_schema_types' );
 		}
+	}
+	public function save_social_meta( $post_id ) {
+
+		if ( ! isset( $_POST['social-meta'] ) ) {
+				return;
+		}
+		error_log($_POST['og_title']);
+		update_post_meta( $post_id, '_og_title', $_POST['og_title'] ?? 'k' );
+		update_post_meta( $post_id, '_og_description', $_POST['og_description'] ?? 'k' );
+		update_post_meta( $post_id, '_twitter_title', $_POST['twitter_title'] ?? 'k' );
+		update_post_meta( $post_id, '_twitter_description', $_POST['twitter_description'] ?? 'k' );
 	}
 }

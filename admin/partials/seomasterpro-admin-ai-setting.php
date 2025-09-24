@@ -10,8 +10,6 @@
 
 <div class="wrap">
 	<h1>AI settings</h1>
-
-
 	<form method="post" >
 		<input type="hidden" name="ai">
 		<?php wp_nonce_field( 'save_ai', 'ai' ); ?>
@@ -34,7 +32,5 @@
 			}
 		?>
 		</div>
-
 		<input type="submit" class="button button-primary" value="Save AI Settings">
-
 	</form>

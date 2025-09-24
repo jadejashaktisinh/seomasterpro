@@ -55,7 +55,6 @@ $outdated_posts  = $wpdb->get_results(
 <div class="wrap">
 	<h1>SEO Master Pro - Dashboard</h1>
 
-	<!-- Average Score -->
 	<div style="padding:20px; background:#fff; border:1px solid #ddd; border-radius:8px; margin-bottom:20px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
 		<h2>📊 Sitewide SEO Score</h2>
 		<p style="font-size:24px; font-weight:bold;">
@@ -68,7 +67,6 @@ $outdated_posts  = $wpdb->get_results(
 
 	<div style="display:flex; gap:20px; flex-wrap:wrap;">
 
-		<!-- Missing Meta Descriptions -->
 		<div style="flex:1; min-width:300px; padding:15px; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
 			<h3>⚠️ Missing Meta Descriptions</h3>
 			<ul>
@@ -82,7 +80,6 @@ $outdated_posts  = $wpdb->get_results(
 			</ul>
 		</div>
 
-		<!-- Low Score Posts -->
 		<div style="flex:1; min-width:300px; padding:15px; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
 			<h3>🔻 Low Score Posts (<60) </h3>
 			<ul>
@@ -100,7 +97,6 @@ $outdated_posts  = $wpdb->get_results(
 			</ul>
 		</div>
 
-		<!-- Outdated Posts -->
 		<div style="flex:1; min-width:300px; padding:15px; background:#fff; border:1px solid #ddd; border-radius:8px; box-shadow:0 1px 2px rgba(0,0,0,0.05);">
 			<h3>📅 Outdated Posts (1+ Year Old)</h3>
 			<ul>

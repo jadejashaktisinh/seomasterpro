@@ -1,5 +1,6 @@
 <?php
 
+
 /**
  * The admin-specific functionality of the plugin.
  *
@@ -20,7 +21,8 @@
  * @subpackage Seomasterpro/admin
  * @author     jadeja shaktisinh <jadejashakti5483@gmail.com>
  */
-class Seomasterpro_Admin {
+class Seomasterpro_Admin
+{
 
 	/**
 	 * The ID of this plugin.
@@ -47,7 +49,8 @@ class Seomasterpro_Admin {
 	 * @param      string $plugin_name       The name of this plugin.
 	 * @param      string $version    The version of this plugin.
 	 */
-	public function __construct( $plugin_name, $version ) {
+	public function __construct($plugin_name, $version)
+	{
 
 		$this->plugin_name = $plugin_name;
 		$this->version     = $version;
@@ -58,7 +61,8 @@ class Seomasterpro_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_styles() {
+	public function enqueue_styles()
+	{
 
 		/**
 		 * This function is provided for demonstration purposes only.
@@ -72,7 +76,7 @@ class Seomasterpro_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_style( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'css/seomasterpro-admin.css', array(), $this->version, 'all' );
+		wp_enqueue_style($this->plugin_name, plugin_dir_url(__FILE__) . 'css/seomasterpro-admin.css', array(), $this->version, 'all');
 	}
 
 	/**
@@ -80,8 +84,8 @@ class Seomasterpro_Admin {
 	 *
 	 * @since    1.0.0
 	 */
-	public function enqueue_scripts() {
-
+	public function enqueue_scripts()
+	{
 		/**
 		 * This function is provided for demonstration purposes only.
 		 *
@@ -94,11 +98,11 @@ class Seomasterpro_Admin {
 		 * class.
 		 */
 
-		wp_enqueue_script( $this->plugin_name, plugin_dir_url( __FILE__ ) . 'js/seomasterpro-admin.js', array( 'jquery' ), $this->version, false );
+		wp_enqueue_script($this->plugin_name, plugin_dir_url(__FILE__) . 'js/seomasterpro-admin.js', array('jquery'), $this->version, false);
 		wp_enqueue_script(
 			'seo-analyzer.js',
-			plugin_dir_url( __FILE__ ) . 'js/seo-analyzer.js',
-			array( 'jquery' ),
+			plugin_dir_url(__FILE__) . 'js/seo-analyzer.js',
+			array('jquery'),
 			'1.0',
 			true
 		);
@@ -106,24 +110,24 @@ class Seomasterpro_Admin {
 			'seo-analyzer.js',
 			'AI_SEO',
 			array(
-				'ajaxurl' => admin_url( 'admin-ajax.php' ),
-				'nonce'   => wp_create_nonce( 'ai_seo_ajax_nonce' ),
+				'ajaxurl' => admin_url('admin-ajax.php'),
+				'nonce'   => wp_create_nonce('ai_seo_ajax_nonce'),
 				'post_id' => get_the_ID(),
 			)
 		);
 		wp_enqueue_script(
 			'schema-handler.js',
-			plugin_dir_url( __FILE__ ) . 'js/schema-handler.js',
-			array( 'jquery' ),
+			plugin_dir_url(__FILE__) . 'js/schema-handler.js',
+			array('jquery'),
 			'1.0',
 			true
 		);
-		wp_enqueue_script( 'seo-charts', plugin_dir_url( __FILE__ ) . 'js/dashboard-charts.js', array( 'jquery' ), '1.0', true );
+		wp_enqueue_script('seo-charts', plugin_dir_url(__FILE__) . 'js/dashboard-charts.js', array('jquery'), '1.0', true);
 		wp_localize_script(
 			'seo-charts',
 			'seoChartsAjax',
 			array(
-				'ajax_url' => admin_url( 'admin-ajax.php' ),
+				'ajax_url' => admin_url('admin-ajax.php'),
 			)
 		);
 		wp_enqueue_script(
@@ -131,6 +135,13 @@ class Seomasterpro_Admin {
 			'https://cdn.jsdelivr.net/npm/chart.js',
 			array(),
 			'4.4.0',
+			true
+		);
+		wp_enqueue_script(
+			'react-editor-app',
+			dirname(plugin_dir_url(__FILE__)) . '/build/editor-app.js',
+			array('wp-element', 'wp-data','wp-components','wp-dom-ready', 'wp-edit-post'),
+			'1.0',
 			true
 		);
 	}

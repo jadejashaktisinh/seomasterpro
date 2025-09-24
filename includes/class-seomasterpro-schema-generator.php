@@ -4,11 +4,6 @@
 class Schema_Generator {
 
 
-
-	function __construct() {
-		add_action( 'wp_head', array( $this, 'schema_generator' ) );
-	}
-
 	public function schema_generator() {
 		if ( ! is_singular() ) {
 			return;

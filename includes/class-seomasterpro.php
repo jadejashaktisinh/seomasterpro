@@ -100,6 +100,21 @@ class Seomasterpro {
 	private function load_dependencies() {
 
 		/**
+		 *
+		 *  classes used responsible for defining all actions
+		*/
+
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-seomasterpro-metabox-handler.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-seomasterpro-seo-analyze-handler.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-seomasterpro-admin-handler.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-seomasterpro-sitemap-generator.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-seomasterpro-schema-generator.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-seomasterpro-technical-scan-handler.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-seomasterpro-ai-handler.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-seomasterpro-chart-ajax.php';
+		require_once plugin_dir_path( __DIR__ ) . 'includes/class-seomasterpro-socialcard-handler.php';
+
+		/**
 		 * The class responsible for orchestrating the actions and filters of the
 		 * core plugin.
 		 */
@@ -150,10 +165,40 @@ class Seomasterpro {
 	 */
 	private function define_admin_hooks() {
 
-		$plugin_admin = new Seomasterpro_Admin( $this->get_plugin_name(), $this->get_version() );
+		$plugin_admin       = new Seomasterpro_Admin( $this->get_plugin_name(), $this->get_version() );
+		$metabox_handler    = new MetaBox_Handler();
+		$ai_seo             = new AI_SEO_Analyzer();
+		$admin_handler      = new Admin_Handler();
+		$sitemap_generator  = new Sitemap_Generator();
+		$schema_generator   = new Schema_Generator();
+		$technical_scan     = new Technical_Scan_Handler();
+		$chart_ajax         = new Chart_Ajax();
+		$ai_handler         = new Ai_Handler();
+		$socialcard_handler = new Socialcard_Handler();
 
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_styles' );
 		$this->loader->add_action( 'admin_enqueue_scripts', $plugin_admin, 'enqueue_scripts' );
+
+		$this->loader->add_action( 'add_meta_boxes', $metabox_handler, 'regiter_meta_box' );
+		$this->loader->add_action( 'save_post', $metabox_handler, 'save_post_meta' );
+
+		$this->loader->add_action( 'wp_ajax_ai_seo_analyze', $ai_seo, 'ajax_ai_seo_analyze' );
+		$this->loader->add_action( 'save_post', $ai_seo, 'save_post_ai_seo_analyze' );
+		$this->loader->add_action( 'cron_ai_analyze', $ai_seo, 'analyze_post' );
+
+		$this->loader->add_action( 'admin_menu', $admin_handler, 'register_nav_menu' );
+		$this->loader->add_action( 'init', $admin_handler, 'add_custom_column' );
+
+		$this->loader->add_action( 'init', $sitemap_generator, 'register_rewrite_rules' );
+		$this->loader->add_action( 'admin_init', $sitemap_generator, 'save_sitemap_setting' );
+		$this->loader->add_action( 'template_redirect', $sitemap_generator, 'serve_sitemap' );
+		$this->loader->add_action( 'wp_head', $schema_generator, 'schema_generator' );
+
+		$this->loader->add_filter( 'do_technical_scan', $technical_scan, 'do_technical_scan', 10, 2 );
+		$this->loader->add_action( 'wp_ajax_seo_master_get_chart_data', $chart_ajax, 'get_chart_data' );
+		$this->loader->add_action( 'init', $ai_handler, 'save_ai_setting' );
+		$this->loader->add_action( 'wp_head', $socialcard_handler, 'add_meta_tags', 1 );
+		$this->loader->add_action( 'rank_math/head', $socialcard_handler, 'remove_action' );
 	}
 
 	/**
@@ -177,14 +222,7 @@ class Seomasterpro {
 	 * @since    1.0.0
 	 */
 	public function run() {
-		new MetaBox_Handler();
-		new AI_SEO_Analyzer();
-		new Admin_Handler();
-		new Sitemap_Generator();
-		new Schema_Generator();
-		new Technical_Scan_Handler();
-		new Chart_Ajax();
-		new Ai_Handler();
+
 		$this->loader->run();
 	}
 
@@ -218,7 +256,4 @@ class Seomasterpro {
 	public function get_version() {
 		return $this->version;
 	}
-	
 }
-
-

@@ -3,11 +3,6 @@
 
 class Admin_Handler {
 
-	public function __construct() {
-		add_action( 'admin_menu', array( $this, 'register_nav_menu' ) );
-		add_action( 'init', array( $this, 'add_custom_column' ) );
-	}
-
 	public function register_nav_menu() {
 		add_menu_page(
 			'SEO Master Pro',
@@ -77,9 +72,18 @@ class Admin_Handler {
 	}
 	public function ai_seo_render_admin_column( $column, $post_id ) {
 		if ( 'ai_seo' === $column ) {
+			$cron_status = get_post_meta( $post_id, '_cron_status', true );
 			$score       = get_post_meta( $post_id, '_ai_seo_score', true );
 			$keyword = get_post_meta( $post_id, '_ai_seo_focus_keyword', true );
 
+			if( "error" === $cron_status){
+				echo "some error occurd try again";
+					return;
+			}
+			if( "analyzing" === $cron_status){
+					echo "analyzing post";
+					return;
+			}
 			if ( $score ) {
 				echo '<strong>' . intval( $score ) . '/100</strong>';
 			} else {
