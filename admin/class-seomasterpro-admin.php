@@ -139,7 +139,7 @@ class Seomasterpro_Admin
 		);
 		wp_enqueue_script(
 			'react-editor-app',
-			dirname(plugin_dir_url(__FILE__)) . '/build/editor-app.js',
+			plugin_dir_url(__FILE__) . 'js/editor-app.js',
 			array('wp-element', 'wp-data','wp-components','wp-dom-ready', 'wp-edit-post'),
 			'1.0',
 			true
